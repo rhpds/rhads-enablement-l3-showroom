@@ -127,7 +127,7 @@ echo ""
 
 . Click the **Red Hat Developer Hub** tab (next to _Events_)to see the list of all instances of {product_rhdh_name} on the cluster (there should be only one).
 
-. Select the `developer-hub` CR. Its letter `B` icon recpresents its Custom Resource Kind, _Backstage_.
+. Select the `developer-hub` CR. Its letter `B` icon represents its Custom Resource Kind, _Backstage_.
 
 . Open the YAML view by clicking the **YAML** tab
 
