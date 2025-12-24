@@ -4,7 +4,7 @@ The steps that follow employ the pre-installed Developer Hub instance running in
 
 == Create
 
-Component instances created from the _Quarkus Java_ Template include a basic set of TechDocs for both the source and gitops repositories. The documentation for the Component describes how the Template creates the Component repos and outlines the example source code the repos contain.
+Let's use an example pre-installed Template to illustrate the creation and editing of TechDocs. Component instances created from the _Quarkus Java_ Template include a basic set of TechDocs for both the source and gitops repositories. The documentation for the Component describes how the Template creates the Component repos and outlines the example source code the repos contain.
 
 . Navigate to {rhdh_url}[{product_rhdh_name}^, window="rhdh"] and login as `{rhdh_user}` with password `{rhdh_user_password}`.
 
@@ -46,7 +46,7 @@ Component instances created from the _Quarkus Java_ Template include a basic set
 
 === Section 4: Review
 
-Click *Create* button to instantiate the Template into a new Component.
+Click *Create* button to instantiate the Template into a new Component. Wait for the provisioning to complete.
 
 == Visit-ate
 
@@ -73,26 +73,9 @@ Click *Create* button to instantiate the Template into a new Component.
 
 . Click the **Refresh** link in the green-outlined "please refresh" banner to load the latest HTML rendition of your document.
 
-== Cleanup (Annihilate)
+We'll use this same `uq` component in the next lab to demonstrate how to configure TechDocs for production use.
 
-. In {product_rhdh_name}, click **Catalog** in the left navigation.
-
-. Click **uq** in the **Owned Components** Catalog list to open your Component.
-
-. Click the "falafel menu" (three stacked dots) near top right to expand the entity actions menu.
-
-. Click **Unregister entity**
-
-. Click **Unregister Location** in the presented dialog
-
-. Notice that the **Owned Components** list no longer includes the _uq_ Component.
-
-[NOTE]
-====
-Unregistering a Component removes it from the {product_rhdh_name} Catalog, but does not remove or change external resources that may have been created or executed when the Component was created from its Template. Git repos, OpenShift Projects, Deployments, Pods, and other resources associated with the unregistered Component will still exist. In fact, you can re-register a Component by again providing RHDH a reference to its source repo that still contains a https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/-/blob/main/catalog-info.yaml[`catalog-info.yaml` definition^]. Without further arrangement to cleanup such resources, however, a later instantiation attempting to specify an identical Component name beneath the identical org or user could lead to name conflicts or other resource contention. For example, if your `user1 TSSC` creates another `uq`.
-====
-
-== Summary (to Restate...)
+== Summary
 
 This is the basic experience {product_rhdh_name} TechDocs provides to developers, technical writers, and other team members. Docs with code, docs _as_ code, and an edit process that works just like changing and committing any other project code. Behind the scenes, triggered, automatic publication happens through a pipelined build, in this case resident with RHDH and the TechDocs plugins.
 
