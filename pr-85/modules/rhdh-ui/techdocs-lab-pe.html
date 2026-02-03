@@ -441,15 +441,15 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>What is different from the default Red Hat Developer Hub TechDocs deployment:</p>
+<p>How is a production-grade deployment different from the default Red Hat Developer Hub TechDocs deployment?</p>
 </div>
 <div class="paragraph">
-<p>The TechDocs Basic deployment mode generates and stores documentation artifacts within the RHDH instance. A recommended deployment uses persistent storage, external to RHDH, and potentially distributes the TechDocs <em>generation</em> step to continuous integration tasks in each repository.</p>
+<p>The TechDocs default deployment mode generates and stores documentation artifacts within the RHDH instance. For production use, it is recommended to use persistent storage, external to RHDH, and potentially distribute the TechDocs <em>generation</em> step to continuous integration tasks in each repository.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_implementing_production_techdocs"><a class="anchor" href="#_implementing_production_techdocs"></a>Implementing production TechDocs</h2>
+<h2 id="_high_level_tasks"><a class="anchor" href="#_high_level_tasks"></a>High Level Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Implementing those differences to create a production-ready TechDocs deployment involves 3 high level tasks:</p>
@@ -467,7 +467,7 @@
 </div>
 </li>
 <li>
-<p><strong>Flexible Generation</strong> Centered in Red Hat Developer Hub, or distributed in project CI pipelines</p>
+<p><strong>Flexible Generation</strong> centered in Red Hat Developer Hub, or distributed in project CI pipelines</p>
 <div class="ulist">
 <ul>
 <li>
@@ -481,7 +481,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Modify app-config.yaml in the RHDH configMap, setting <code>techdocs.builder</code> from <code>local</code> to <code>external</code>. This disables the local generator.</p>
+<p>Modify <code>app-config.yaml</code> in the RHDH ConfigMap, setting <code>techdocs.builder</code> from <code>local</code> to <code>external</code>. This disables the local generator.</p>
 </li>
 </ul>
 </div>
@@ -491,13 +491,13 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_platform_engineering_production_techdocs"><a class="anchor" href="#_platform_engineering_production_techdocs"></a>[Platform] Engineering Production TechDocs</h2>
+<h2 id="_configuring_storage"><a class="anchor" href="#_configuring_storage"></a>Configuring Storage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This lab establishes production TechDocs in divisible segments. First, persistent storage (for this document cache) on an S3-style object store. This is the key step, because some kind of persistent storage is required in order to even consider external generation, and because when running on OpenShift, even external (that is, external to RHDH) generation will tend to run in pipelines on the cluster. This is a distinct advantage of deploying a Backstage IDP in the form of Red Hat Developer Hub on OpenShift, because it makes the choice between local and external TechDocs generation a matter of site practices and preferences, rather than a hard requirement for the most basic division of labor.</p>
+<p>This lab establishes production TechDocs in divisible segments. First, establish persistent storage (for the document cache) on an S3-style object store. This is the key step, because some kind of persistent storage is required in order to even consider external generation, and because when running on OpenShift, even external (that is, external to RHDH) generation will tend to run in pipelines on the cluster. This is a distinct advantage of deploying a Backstage IDP in the form of Red Hat Developer Hub on OpenShift, because it makes the choice between local and external TechDocs generation a matter of site practices and preferences, rather than a hard requirement for the most basic division of labor.</p>
 </div>
 <div class="sect2">
-<h3 id="_existing_deployments"><a class="anchor" href="#_existing_deployments"></a>Existing Deployments</h3>
+<h3 id="_use_existing_deployment"><a class="anchor" href="#_use_existing_deployment"></a>Use Existing Deployment</h3>
 <div class="paragraph">
 <p>Begin with the platform components already deployed in the <code>tssc-dh</code> Project.</p>
 </div>
@@ -521,76 +521,65 @@
 </li>
 </ol>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_external_storage"><a class="anchor" href="#_external_storage"></a>External Storage</h3>
 <div class="paragraph">
 <p>You met OpenShift Data Foundation in the <a href="../setup-tpa/setup-openshift.html" class="xref page">Setup Trusted Profile Analyzer</a> module. A part of OpenShift Platform Plus, OpenShift Data Foundation is already configured and deployed in your environment. You need ODF to provide an emulated S3 bucket to store generated TechDocs HTML.</p>
 </div>
-<div class="sect3">
-<h4 id="_create_objectbucketclaim"><a class="anchor" href="#_create_objectbucketclaim"></a>Create ObjectBucketClaim</h4>
+</div>
+<div class="sect2">
+<h3 id="_create_objectbucketclaim"><a class="anchor" href="#_create_objectbucketclaim"></a>Create ObjectBucketClaim</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift Web Console, visit <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>ObjectBucketClaims</strong> to check the OpenShift Data Foundation. You&#8217;ll see UI tabs for storage <em>Buckets</em>, backing stores, and the this step&#8217;s focus, <em>Object Bucket Claims</em>. You might see the initialism OBC used to represent these resources that declare segments of storage available to applications on the cluster.</p>
+<p>In the OpenShift Web Console, visit <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>ObjectBucketClaims</strong> to check the OpenShift Data Foundation. You&#8217;ll see UI tabs for storage <em>Buckets</em>, backing stores, and the this step&#8217;s focus, <em>Object Bucket Claims</em> (OBC). These represent resources that declare segments of storage available to applications on the cluster.</p>
 </li>
 <li>
-<p>Copy the following Kubernetes manifest to your clipboard.</p>
+<p>Click the <code>(+)</code> button at the top of the console, and choose <strong>Import YAML</strong>.</p>
 </li>
-</ol>
-</div>
-<div class="listingblock">
+<li>
+<p>Copy the following Kubernetes manifest into the YAML editor.</p>
+<div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
   name: rhdh-bucket-claim
+  namespace: tssc-dh
 spec:
-  generateBucketName: techdocs
-  storageClassName: openshift-storage.noobaa.io</code></pre>
+  generateBucketName: techdocs <i class="conum" data-value="1"></i><b>(1)</b>
+  storageClassName: openshift-storage.noobaa.io <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Click the <code>&gt;_</code> icon near the top right of the OpenShift Web Console to open the Web Terminal.</p>
-</li>
-<li>
-<p>Set <code>oc(1)</code> to the <code>tssc-dh</code> current working Project: <code>oc project tssc-dh</code></p>
-</li>
-<li>
-<p>Type <code>cat &gt; rhdh-bucket-claim.yaml</code>, followed by <kbd>Enter</kbd>.</p>
-</li>
-<li>
-<p>Paste the copied YAML into the paused terminal, followed by <code>^D</code>: <kbd>CTRL-D</kbd>. This signals the end of the file and writes it to disk, from where you can <em>apply</em> it to the cluster.</p>
-</li>
-<li>
-<p>Apply the manifest to the cluster with the <em>oc</em>(1) command line tool:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">% oc apply -f rhdh-bucket-claim.yaml
-objectbucketclaim.objectbucket.io/rhdh-bucket-claim created</code></pre>
-</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A prefix to add to the generated bucket name, for uniqueness and later identification/filtering.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The storage class to use for the bucket. <a href="https://www.noobaa.io/NooBaa" target="_blank" rel="noopener">NooBaa</a> (productized as <em>Multicloud Object Gateway</em> in OpenShift) is a smart S3 gateway that routes object data across multiple storage backends, and has been pre-configured for you, so we use its storage class here.</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>In the OpenShift Web Console, visit <strong>Workloads</strong> &#8594; <strong>ConfigMaps</strong> and <strong>Workloads</strong> &#8594; <strong>Secrets</strong> in turn to examine the <code>rhdh-bucket-claim</code> resources of each type automatically created when you declared your OBC.</p>
+<p>This will create a new bucket we will use to store rendered TechDocs. It will also create a new Secret and ConfigMap containing configuration details for the bucket with which we will configure Red Hat Developer Hub to use.</p>
 </div>
+</li>
+<li>
+<p>In the OpenShift Web Console, visit <strong>Workloads</strong> &#8594; <strong>ConfigMaps</strong> and <strong>Workloads</strong> &#8594; <strong>Secrets</strong> in turn to examine the <code>rhdh-bucket-claim</code> resources of each type automatically created when you created the ObjectBucketClaim. In the next steps, you will configure Red Hat Developer Hub to use these resources, available as environment variables (or mounted on the filesystem) in the Red Hat Developer Hub Pod.</p>
 <div class="imageblock">
 <div class="content">
 <a class="image" href="../_images/rhdh-ui/claim-secret.png" target="image"><img src="../_images/rhdh-ui/claim-secret.png" alt="claim secret"></a>
 </div>
 </div>
+</li>
+</ol>
 </div>
-<div class="sect3">
-<h4 id="_configmap_configures_developer_hub"><a class="anchor" href="#_configmap_configures_developer_hub"></a>ConfigMap configures Developer Hub</h4>
-<div class="paragraph">
-<p>Creating the ObjectBucketClaim also creates a ConfigMap and a Secret containing configuration details for the claimed bucket. These two <code>rhdh-bucket-claim</code> resources will be mounted in the Red Hat Developer Hub Pod, available as environment variables or beneath file paths.</p>
 </div>
+<div class="sect2">
+<h3 id="_configure_developer_hub"><a class="anchor" href="#_configure_developer_hub"></a>Configure Developer Hub</h3>
 <div class="paragraph">
-<p>Edit the Developer Hub Dynamic Plugins ConfigMap to connect the RHDH instance to the storage bucket you created. The Dynamic Plugins ConfigMap refers to variables defined in the <code>rhdh-bucket-claim</code> ConfigMap and Secret. Referenced here, those variables will be populated after you adjust the Developer Hub CustomResource to point to their sources in the <code>rhdh-bucket-claim</code> ConfigMap and Secret.</p>
+<p>In the following steps, you will configure Red Hat Developer Hub to connect to the storage bucket you created. The RHDH configuration will refer to variables defined in the <code>rhdh-bucket-claim</code> ConfigMap and Secret. Referenced here, those variables will be populated after you adjust the RHDH Custom Resource to point to their sources in the <code>rhdh-bucket-claim</code> ConfigMap and Secret.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -598,56 +587,48 @@ objectbucketclaim.objectbucket.io/rhdh-bucket-claim created</code></pre>
 <p>In the OpenShift Web Console, click <strong>Workloads</strong> in the left navigation to expand it, then click  <strong>ConfigMaps</strong>.</p>
 </li>
 <li>
-<p>Select the <strong>tssc-developer-hub-dynamic-plugins</strong> ConfigMap to open it.</p>
+<p>Select the <strong>tssc-developer-hub-app-config</strong> ConfigMap to open it.</p>
 </li>
 <li>
 <p>Click the <strong>YAML</strong> tab to open the ConfigMap source.</p>
 </li>
 <li>
-<p>Edit the Dynamic Plugins ConfigMap YAML immediately after the existing line <code>package: ./dynamic-plugins/dist/backstage-plugin-techdocs-backend-dynamic</code> and immediately before the keycloak stanza (<code>- disabled: false</code>) that follows, to make the result match this YAML excerpt:</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
+<p>Near the bottom of the file, delete and replace the <code>techdocs:</code> section with the following content (be sure to match indentation, such as aligning <code>techdocs:</code> with the previous <code>signInPage:</code> element):</p>
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: tssc-developer-hub-dynamic-plugins
-  namespace: tssc-dh
-[ ... ]
-    - disabled: false
-      package: ./dynamic-plugins/dist/backstage-plugin-techdocs
-    - disabled: false
-      package: ./dynamic-plugins/dist/backstage-plugin-techdocs-backend-dynamic
-      pluginConfig:<i class="conum" data-value="1"></i><b>(1)</b>
-        techdocs:
-          builder: local
-          generator:
-            runIn: local
-          publisher:
-            awsS3:
-              bucketName: '${BUCKET_NAME}'
-              credentials:
-                accessKeyId: '${AWS_ACCESS_KEY_ID}'
-                secretAccessKey: '${AWS_SECRET_ACCESS_KEY}'
-              endpoint: 'https://${BUCKET_HOST}'
-              region: '${BUCKET_REGION}'
-              s3ForcePathStyle: true
-            type: awsS3
-    - disabled: false<i class="conum" data-value="2"></i><b>(2)</b>
-      package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">    techdocs:
+      builder: local
+      generator:
+        runIn: local
+      publisher:
+        type: awsS3 <i class="conum" data-value="1"></i><b>(1)</b>
+        awsS3: <i class="conum" data-value="2"></i><b>(2)</b>
+          bucketName: '${BUCKET_NAME}'
+          credentials:
+            accessKeyId: '${AWS_ACCESS_KEY_ID}'
+            secretAccessKey: '${AWS_SECRET_ACCESS_KEY}'
+          endpoint: 'https://${BUCKET_HOST}'
+          region: noobaa <i class="conum" data-value="3"></i><b>(3)</b>
+          s3ForcePathStyle: true <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Copy and paste the YAML from this line to the line labeled with (2) to extend the <code>package: ./dynamic-plugins/dist/backstage-plugin-techdocs-backend-dynamic</code> section of your <code>tssc-developer-hub-dynamic-plugins</code> configMap with a <code>pluginConfig</code> setting options for TechDocs storage in your ODF Object Bucket.</td>
+<td>The type of publisher to use. In this case, we are using the <code>awsS3</code> publisher type to publish to the ODF storage bucket.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>This line exists and should become the first line after the end of the lines you insert.</td>
+<td>The <code>awsS3</code> publisher type configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>As we are using local storage, no region is needed, so we use a placeholder value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>s3ForcePathStyle</code> parameter is set to <code>true</code> to force the use of path-style addressing, which is required for the ODF storage bucket.</td>
 </tr>
 </table>
 </div>
@@ -658,52 +639,57 @@ metadata:
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-As you may remember from the setup-tpa module, the following script when executed in the <code>tssc-dh</code> Project namespace will retrieve all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is being constructed from the variables in the YAML above. Remember, the values for these variables come from the <code>rhdh-bucket-claim</code> ConfigMap and Secret generated when you create the <code>rhdh-bucket-claim</code> OBC.
+<div class="paragraph">
+<p>As you may remember from the setup-tpa module, the following script when executed in the <code>tssc-dh</code> Project namespace will retrieve all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is being constructed from the variables in the YAML above. Remember, the values for these variables come from the <code>rhdh-bucket-claim</code> ConfigMap and Secret generated when you create the <code>rhdh-bucket-claim</code> ObjectBucketClaim. If you&#8217;re interested, run the following commands in the Web Terminal (the <code>&gt;_</code> icon near the top right of the OpenShift Web Console) to see their values. You will use this later on when configuring GitLab CI.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">CLAIM="rhdh-bucket-claim"
+echo ""
+
+echo -n "Bucket Name:         "
+oc get configmap $CLAIM -n tssc-dh -o jsonpath='{.data.BUCKET_NAME}'
+echo ""
+
+echo -n "Access Key ID:       "
+oc get secret $CLAIM -n tssc-dh -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d
+echo ""
+
+echo -n "Secret Access Key:   "
+oc get secret $CLAIM -n tssc-dh -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d
+echo ""
+
+echo -n "Bucket Host:         "
+oc get configmap $CLAIM -n tssc-dh -o jsonpath='{.data.BUCKET_HOST}'
+echo ""</code></pre>
+</div>
+</div>
 </td>
 </tr>
 </table>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">#!/bin/bash
-
-CLAIM="rhdh-bucket-claim"
-
-echo -n "Bucket Name:         "
-oc get configmap $CLAIM -o jsonpath='{.data.BUCKET_NAME}'
-echo ""
-
-echo -n "Access Key ID:       "
-oc get secret $CLAIM -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d
-echo ""
-
-echo -n "Secret Access Key:   "
-oc get secret $CLAIM -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d
-echo ""
-
-echo -n "Bucket Host:         "
-oc get configmap $CLAIM -o jsonpath='{.data.BUCKET_HOST}</code></pre>
+</li>
+</ol>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_adjust_rhdh_custom_resource"><a class="anchor" href="#_adjust_rhdh_custom_resource"></a>Adjust RHDH Custom Resource</h4>
+<div class="sect2">
+<h3 id="_adjust_rhdh_custom_resource"><a class="anchor" href="#_adjust_rhdh_custom_resource"></a>Adjust RHDH Custom Resource</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift Web Console, go to <strong>Operators</strong> &#8594; <strong>Installed Operators</strong> &#8594; <strong>Red Hat Developer Hub Operator</strong> &#8594; <strong>Red Hat Developer Hub</strong></p>
+<p>In the OpenShift Web Console, go to <strong>Operators</strong> &#8594; <strong>Installed Operators</strong> &#8594; <strong>Red Hat Developer Hub Operator</strong></p>
 </li>
 <li>
-<p>Select the <code>developer-hub</code> CR. Its letter <code>B</code> icon recpresents its Custom Resource Kind, <em>Backstage</em>.</p>
+<p>Click the <strong>Red Hat Developer Hub</strong> tab (next to <em>Events</em>)to see the list of all instances of Red Hat Developer Hub on the cluster (there should be only one).</p>
+</li>
+<li>
+<p>Select the <code>developer-hub</code> CR. Its letter <code>B</code> icon represents its Custom Resource Kind, <em>Backstage</em>.</p>
 </li>
 <li>
 <p>Open the YAML view by clicking the <strong>YAML</strong> tab</p>
 </li>
 <li>
-<p>Edit the <code>extraEnvs:</code> stanza to include the names of your bucket claim&#8217;s configMap and Secret. Both are named <code>rhdh-bucket-claim</code>:</p>
-</li>
-</ol>
-</div>
+<p>Edit the <code>extraEnvs:</code> stanza to add the names of your bucket claim&#8217;s configMap and Secret (don&#8217;t remove any existing values!). Both are named <code>rhdh-bucket-claim</code>. Be sure to use the correct indentation as shown below:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: rhdh.redhat.com/v1alpha3
@@ -729,16 +715,28 @@ spec:
 [ ... ]</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Click <strong>Save</strong> to commit the changes. It will take a few moments for the Red Hat Developer Hub Pod to restart. Navigate to <strong>Workloads</strong> &#8594; Pods in the left navigation to watch a new RHDH Pod rollout in response to your changes to the desired state.</p>
+</li>
+<li>
+<p>Click <strong>Save</strong> to commit the changes. It will take a few moments for the Red Hat Developer Hub Pod to restart.</p>
+</li>
+<li>
+<p>Navigate to <strong>Workloads</strong> &#8594; <strong>Pods</strong> in the left navigation to watch the new RHDH Pod rollout in response to your changes to the desired state. Wait for the new Pod to be ready (and the old Pod to be terminated) before proceeding.</p>
+</li>
+</ol>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_local_generation_persistent_storage"><a class="anchor" href="#_local_generation_persistent_storage"></a>Local Generation, Persistent Storage</h4>
+<div class="sect2">
+<h3 id="_edit_techdocs_to_trigger_rebuild"><a class="anchor" href="#_edit_techdocs_to_trigger_rebuild"></a>Edit TechDocs to trigger rebuild</h3>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>Navigate to {rhdh_url}[Red Hat Developer Hub^, window="rhdh"] and login as <code>{rhdh_user}</code> with password <code>{rhdh_user_password}</code>.</p>
+</li>
+<li>
+<p>In Red Hat Developer Hub, click <strong>Docs</strong> in the left navigation to open the TechDocs index page.</p>
+</li>
+<li>
+<p>Click on the <code>uq</code> component to open its TechDocs index page.</p>
 </li>
 <li>
 <p>Click the pencil-and-paper Edit icon to the right of the first document heading, <em>Trusted Application Pipeline Software Template</em>, in your <em>uq</em> document.</p>
@@ -747,7 +745,7 @@ spec:
 <p>Log into GitLab using username <code>{gitlab_user}</code> and password <code>{gitlab_user_password}</code>.</p>
 </li>
 <li>
-<p>Arrive in the doc source in the GitLab/user1/uq source repository that holds your component source and documentation.</p>
+<p>Arrive in the doc source in the GitLab <em>user1/uq</em> source repository that holds your component source and documentation.</p>
 </li>
 <li>
 <p>Edit the document in the repository service editor for the quickest experience. For example, you might change the second sentence to clarify it, or change the page first heading for the highest visibility in the result.</p>
@@ -773,14 +771,38 @@ spec:
 </li>
 </ol>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_external_storage_summary"><a class="anchor" href="#_external_storage_summary"></a>External Storage: Summary</h4>
 <div class="paragraph">
-<p>The Developer Hub Custom Resources&#8217;s <code>extraEnvs</code> points to the <code>rhdh-bucket-claim</code> ConfigMap and Secret. This makes their contents available in the running RHDH Pod, where they appear to processes within as conventional files and environment variables.</p>
+<p>The experience is the same as before, but the documentation is now stored in ODF object storage instead of within the RHDH instance.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_view_the_raw_docs_in_odf"><a class="anchor" href="#_view_the_raw_docs_in_odf"></a>View the raw docs in ODF</h3>
+<div class="paragraph">
+<p>You can see the new objects created by visiting the ODF storage bucket in the OpenShift Web Console.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the OpenShift Web Console, visit <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>Buckets</strong> and select the bucket beginning with <code>techdocs-</code>.</p>
+</li>
+<li>
+<p>You should see a new folder <code>default/</code> (the RHDH "namespace" used by your <code>uq</code> component). Click on it and the folders within to eventually arrive at the html structure of the techdoc that was rendered:</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="../_images/rhdh-ui/odf-bucket-contents.png" target="image"><img src="../_images/rhdh-ui/odf-bucket-contents.png" alt="odf bucket contents"></a>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_external_storage_summary"><a class="anchor" href="#_external_storage_summary"></a>External Storage: Summary</h3>
+<div class="paragraph">
+<p>The Developer Hub Custom Resources' <code>extraEnvs</code> points to the <code>rhdh-bucket-claim</code> ConfigMap and Secret. This makes their contents available in the running RHDH Pod, where they appear to processes within as conventional files and environment variables.</p>
 </div>
 <div class="paragraph">
-<p>The RHDH Dynamic Plugins ConfigMap then refers to those resources with names transmuted from the Kubernetes API to the conventional Unix namespace of the actual running process. For example, you can find the environment variable <code>$AWS_ACCESS_KEY_ID</code> in the next YAML listing, the relevant excerpt from the Dynamic Plugins ConfigMap.</p>
+<p>The RHDH App Config ConfigMap then refers to those resources with names transmuted from the Kubernetes API to the conventional Unix namespace of the actual running process. For example, you can find the environment variable <code>$AWS_ACCESS_KEY_ID</code> in the next YAML listing, the relevant excerpt from the App Config ConfigMap.</p>
 </div>
 <div class="paragraph">
 <p>When the Developer Hub application later reads <code>$AWS_ACCESS_KEY_ID</code> from its environment, it finds in it the value declared in the <code>rhdh-bucket-claim</code> Secret.</p>
@@ -791,42 +813,37 @@ spec:
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="_mkdocs_techdocs_core_builder_mechanics"><a class="anchor" href="#_mkdocs_techdocs_core_builder_mechanics"></a>mkdocs-techdocs-core: Builder Mechanics</h2>
+<h2 id="_flexible_generation_builder_mechanics_with_mkdocs"><a class="anchor" href="#_flexible_generation_builder_mechanics_with_mkdocs"></a>Flexible Generation: Builder Mechanics with <em>MkDocs</em></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>An Entity has TechDocs features configured when it is tagged with the <code>backstage.io/techdocs-ref</code> <em>annotation</em>.</p>
 </div>
 <div class="sect2">
-<h3 id="_entity_annotation_docs_location"><a class="anchor" href="#_entity_annotation_docs_location"></a>Entity Annotation, Docs Location</h3>
+<h3 id="_understanding_entity_annotations"><a class="anchor" href="#_understanding_entity_annotations"></a>Understanding Entity Annotations</h3>
 <div class="paragraph">
 <p>The <code>backstage.io/techdocs-ref</code> annotation in an entity&#8217;s <code>catalog-info.yaml</code> dictates the source file location for the entity&#8217;s documentation source.</p>
 </div>
 <div class="paragraph">
-<p>Most entities should specify <code>dir:.</code> That is, their catalog-info&#8217;s <code>dir:</code> parameter should be set to <em>dot</em> (<code>.</code>), the current directory of <code>catalog-info.yaml</code>. With this configuration, Source files and mkdocs.yml live in the same directory as catalog-info.yaml. The entire directory is downloaded during the <em>Prepare</em> step.</p>
+<p>Most entities should specify <code>dir:.</code> That is, their catalog-info&#8217;s <code>dir:</code> parameter should be set to <em>dot</em> (<code>.</code>), the current directory of <code>catalog-info.yaml</code>. With this configuration, Source files and <code>mkdocs.yml</code> live in the same directory as <code>catalog-info.yaml</code>. The entire directory is downloaded during the <em>Prepare</em> step.</p>
 </div>
-<div class="sect3">
-<h4 id="_docs_in_a_sub_directory"><a class="anchor" href="#_docs_in_a_sub_directory"></a>Docs in a sub-directory</h4>
 <div class="paragraph">
 <p>A child directory of the current directory may be specified instead, e.g., <code>dir:./name/</code>.</p>
 </div>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_the_annotated_description_of_your_component"><a class="anchor" href="#_the_annotated_description_of_your_component"></a>The annotated description of your Component</h3>
+<h3 id="_inspect_annotations_on_your_component"><a class="anchor" href="#_inspect_annotations_on_your_component"></a>Inspect annotations on your Component</h3>
 <div class="paragraph">
-<p>Take a look at your <a href="https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/-/blob/main/catalog-info.yaml#L15" target="_blank" rel="noopener"><code>catalog-info.yaml</code> definition&#8217;s line 15</a>. You&#8217;ll see the <code>backstage.io/techdocs-ref</code> annotation and its reference to the current directory as the documentation location.</p>
+<p>Take a look at your {gitlab_url}/user1/uq/-/blob/main/catalog-info.yaml#L15[<code>catalog-info.yaml</code> definition&#8217;s line 15^]. You&#8217;ll see the <code>backstage.io/techdocs-ref</code> annotation and its reference to the current directory as the documentation location.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mkdocs_yaml_configuring_the_builder"><a class="anchor" href="#_mkdocs_yaml_configuring_the_builder"></a>mkdocs.yaml: Configuring the builder</h3>
+<h3 id="_configuring_the_builder_with_mkdocs_yaml"><a class="anchor" href="#_configuring_the_builder_with_mkdocs_yaml"></a>Configuring the builder with <code>mkdocs.yaml</code>:</h3>
 <div class="paragraph">
-<p>Now view your Component&#8217;s <a href="https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/-/blob/main/mkdocs.yml" target="_blank" rel="noopener"><code>mkdocs.yml</code></a>. This file configures any options for the mkdocs-techdocs builder.</p>
+<p>Now view your Component&#8217;s {gitlab_url}/user1/uq/-/blob/main/mkdocs.yml[<code>mkdocs.yml</code>^]. This file configures any options for the mkdocs-techdocs builder.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_where_they_came_from"><a class="anchor" href="#_where_they_came_from"></a>Where they came from</h3>
+<div class="sect3">
+<h4 id="_inspect_software_template"><a class="anchor" href="#_inspect_software_template"></a>Inspect Software Template</h4>
 <div class="paragraph">
 <p>In the Quarkus Java template from which your <code>uq</code> template was instantiated, you&#8217;ll find the skeletal forms of the <code>catalog-info.yaml</code> and <code>mkdocs.yml</code> that are templated with instance values and added during the initialization of new instances created from the Template. You&#8217;ve probably noticed you can navigate from the RHDH Catalog to the Template&#8217;s source repo (like you can with any Catalog entity). <a href="https://github.com/redhat-appstudio/tssc-sample-templates/blob/release-v1.7.x/templates/java-quarkus/template.yaml" target="_blank" rel="noopener"><code>template.yaml</code></a> is a quick shortcut to the Template&#8217;s source.</p>
 </div>
@@ -835,10 +852,11 @@ spec:
 <a href="https://github.com/redhat-appstudio/tssc-sample-templates/blob/release-v1.7.x/templates/java-quarkus/content/mkdocs.yml" target="_blank" rel="noopener">mkdocs.yml</a> skeletons with instance configuration and settings you entered in the create-from-Template forms.</p>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_mkdocs_summary"><a class="anchor" href="#_mkdocs_summary"></a>MkDocs Summary</h3>
 <div class="paragraph">
-<p>You&#8217;ve been through the details of the "server" side (find, build, store, publish) of Red Hat Developer Hub TechDocs configuration for external storage, and you&#8217;ve seen the mechanism on the "client" side (Templates and the Entities they make) that specifies <code>mkdocs-techdocs-core</code>. <a href="https://github.com/backstage/mkdocs-techdocs-core"><code>Mkdocs-techdocs-core</code></a> is a plugin that customizes the operation of <a href="https://mkdocs.org/">MkDocs</a> for TechDocs. MkDocs is a sort of domain-specific static site generator for documentation.</p>
+<p>You&#8217;ve been through the details of the "server" side (find, build, store, publish) of Red Hat Developer Hub TechDocs configuration for external storage, and you&#8217;ve seen the mechanism on the "client" side (Templates and the Entities they make) that specifies <code>mkdocs-techdocs-core</code>. <a href="https://github.com/backstage/mkdocs-techdocs-core"><code>Mkdocs-techdocs-core</code></a> is a plugin that customizes the operation of <a href="https://mkdocs.org/">MkDocs</a> for TechDocs. MkDocs is a domain-specific static site generator for documentation.</p>
 </div>
 <div class="paragraph">
 <p>At this point, your TechDocs deployment centralizes builds in OpenShift (<code>builder: local</code>), but stores the resulting HTML in object bucket storage <em>external</em> to Red Hat Developer Hub. It passes configuration and secrets references only between necessary applications and only through standard mechanisms. This configuration is not an exact match for the upstream BackStage "recommended" TechDocs setup, but the upstream recommended setup is not running on an OpenShift cluster. Many setups will still want to distribute TechDocs builds out to project pipelines, as shown in the next section, but RHDH on OpenShift makes local TechDocs builds to external storage a legitimate production layout.</p>
@@ -847,10 +865,10 @@ spec:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_builder_external"><a class="anchor" href="#_builder_external"></a>builder: external</h2>
+<h2 id="_externalizing_techdocs_builds"><a class="anchor" href="#_externalizing_techdocs_builds"></a>Externalizing TechDocs Builds</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Somewhat incredibly, a cli tool drives all of this. Embedded in RHDH is a version of <code>techdocs-cli</code>, and you could employ the same program on the command line to fetch doc source from some repo and drive <code>mkdocs-techdos-core</code> to build and publish it.</p>
+<p>Somewhat incredibly, a CLI tool drives all of this. Embedded in RHDH is a version of <code>techdocs-cli</code>, and you could employ the same program on the command line to fetch doc source from some repo and drive <code>mkdocs-techdos-core</code> to build and publish it.</p>
 </div>
 <div class="sect2">
 <h3 id="_builder_by_hand"><a class="anchor" href="#_builder_by_hand"></a>Builder by hand</h3>
@@ -861,15 +879,13 @@ spec:
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-You are not expected to copy and run this. It will not work without adjustments to fit the publish step to your <code>rhdh-bucket-claim</code>  configuration and neither <code>npm</code> nor <code>pip</code> are immediately available in your OpenShift web console.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>You are not expected to copy and run this, it is for reference only. It will not work without adjustments to fit the publish step to your <code>rhdh-bucket-claim</code>  configuration and neither <code>npm</code> nor <code>pip</code> are immediately available in your OpenShift web console.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Git that which is owed
-git clone https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq
+git clone {gitlab_url}/user1/uq
 cd uq
 
 # Install gobs of node
@@ -887,13 +903,17 @@ techdocs-cli generate --no-docker
 techdocs-cli publish --publisher-type awsS3 --storage-name techdocs-etc-BEEF-etc-BEEF --entity default/Component/uq</code></pre>
 </div>
 </div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_builder_in_gitlab_runner"><a class="anchor" href="#_builder_in_gitlab_runner"></a>Builder in GitLab Runner</h3>
 <div class="paragraph">
 <p>The outlines of a <code>.gitlab-ci.yaml</code> defining a techdocs-cli Runner on your GitLab instance should look fairly familiar by now:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">stages:
   - build-docs
@@ -904,7 +924,7 @@ generate-and-publish-techdocs:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    AWS_REGION: $AWS_REGION
+    AWS_REGION: noobaa
     TECHDOCS_BUCKET_NAME: $TECHDOCS_BUCKET_NAME
   script:
     - npm install -g npx
@@ -922,20 +942,37 @@ generate-and-publish-techdocs:
 </div>
 </div>
 <div class="sect3">
-<h4 id="_create_the_gitlab_ci_for_techdocs_ci_mkdocs_techdocs_core"><a class="anchor" href="#_create_the_gitlab_ci_for_techdocs_ci_mkdocs_techdocs_core"></a>Create the GitLab CI for techdocs-ci, mkdocs-techdocs-core</h4>
+<h4 id="_create_the_gitlab_ci_for_techdocs_cli_mkdocs_techdocs_core"><a class="anchor" href="#_create_the_gitlab_ci_for_techdocs_cli_mkdocs_techdocs_core"></a>Create the GitLab CI for <code>techdocs-cli</code>, <code>mkdocs-techdocs-core</code></h4>
+<div class="paragraph">
+<p>In the following steps, you will create a GitLab CI pipeline for the <code>uq</code> component to generate and publish its TechDocs to the ODF object bucket.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The pre-installed GitLab you are using does not have any GitLab <em>runners</em> configured, so the pipeline created below will not actually run. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs. In a production environment, you would need to <a href="https://www.redhat.com/en/blog/your-guide-to-the-gitlab-operator-on-openshift" target="_blank" rel="noopener">configure a GitLab Runner</a> to run the pipeline.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>Copy the YAML excerpt above to your clipboard.</p>
 </li>
 <li>
-<p>Visit <a href="https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/" target="_blank" rel="noopener">your <code>uq</code> component&#8217;s source repo</a>.</p>
+<p>Visit {gitlab_url}/user1/uq/[your <code>uq</code> component&#8217;s source repo^].</p>
 </li>
 <li>
 <p>Click <strong>Build</strong> in the left navigation, then <strong>Pipelines</strong> in the sub-menu that appears.</p>
 </li>
 <li>
-<p>Since there is no existing <code>.gitlab-ci.yaml</code> file defining a pipeline in this repo yet, you can click "Try the Default Template" to create the file.</p>
+<p>Since there is no existing <code>.gitlab-ci.yaml</code> file defining a pipeline in this repo yet, click <strong>Try test template</strong> to create the file.</p>
 </li>
 <li>
 <p>Select all of the skeleton YAML in the Default pipeline and delete it. Replace it entirely with the YAML you copied from the <code>stages:</code> excerpt above.</p>
@@ -945,9 +982,6 @@ generate-and-publish-techdocs:
 </li>
 <li>
 <p>Replace <code>$AWS_SECRET_ACCESS_KEY</code> with its value returned from the config dump script.</p>
-</li>
-<li>
-<p>Ignore <code>$AWS_REGION</code>, or replace it with the empty set (<code>''</code>).</p>
 </li>
 <li>
 <p>Replace <code>$TECHDOCS_BUCKET_NAME</code> with its value returned from the script.</p>
@@ -964,33 +998,92 @@ generate-and-publish-techdocs:
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-This exercise is specifically contrived to highlight what is happening when the system prepares, generates, and publishes Red Hat Developer Hub TechDocs. It is intentionally stripped out and isolated from other pipelines that build or scaffold source code and gitops configuration, so that the operation and position of <code>mkdocs-techdocs-core</code> and the ODF S3 Object Bucket storage are obvious.
+<div class="paragraph">
+<p>This exercise is specifically contrived to highlight what is happening when the system prepares, generates, and publishes Red Hat Developer Hub TechDocs. It is intentionally stripped out and isolated from other pipelines that build or scaffold source code and gitops configuration, so that the operation and position of <code>mkdocs-techdocs-core</code> and the ODF S3 Object Bucket storage are obvious.</p>
+</div>
+<div class="paragraph">
+<p>For the same reasons, you quickly pasted plain text credentials into the GitLab CI action configuration, just to stay focused for the moment on operation rather configuration. The last cherry atop this lab as a production-like example of Red Hat Developer Hub would be entering those ODF object bucket credentials, fetched once again from the bucket claim dump script, into GitLab settings (or stored and accessed securely from an external credential vault), instead of into plain text. From there they become available, more securely, as names in an environment variable-like namespace accessible to the GitLab CI. Such configuration is left as a brief, and entirely optional, exercise for the reader.</p>
+</div>
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>For the same reasons, you quickly pasted plain text credentials into the GitLab CI action configuration, just to stay focused for the moment on operation rather configuration. The last cherry atop this lab as a production-like example of Red Hat Developer Hub would be entering those ODF object bucket credentials, fetched once again from the bucket claim dump script, into GitLab settings, instead of into plain text. From there they become available, more securely, as names in an environment variable-like namespace accessible to the GitLab CI. Such configuration is left as a brief, and entirely optional, exercise for the reader.</p>
-</div>
 </div>
 <div class="sect3">
-<h4 id="_reconfigure_rhdh_techdocs_for_builder_external"><a class="anchor" href="#_reconfigure_rhdh_techdocs_for_builder_external"></a>Reconfigure RHDH TechDocs for builder: external</h4>
+<h4 id="_reconfigure_rhdh_techdocs_for_builder_external"><a class="anchor" href="#_reconfigure_rhdh_techdocs_for_builder_external"></a>Reconfigure RHDH TechDocs for <code>builder: external</code></h4>
 <div class="paragraph">
-<p>Switch back to the OpenShift Web Console. Ensure you are in the Administrator perspective, in the <code>tssc-dh</code> Project. Click <strong>Workloads</strong> in the lef navigation, then <strong>ConfigMaps</strong>. Select the <code>tssc-developer-hub-dynamic-plugins</code> to open it for editing. Scroll down to the <code>pluginConfig.techdocs.builder</code> parameter and change its value from <code>local</code> to <code>external</code>. RHDH will start a new Pod with the new configuration in the read-mostly mode described in the introduction to this lab.</p>
+<p>Switch back to the OpenShift Web Console. Ensure you are in the Administrator perspective, in the <code>tssc-dh</code> Project. Click <strong>Workloads</strong> in the left navigation, then <strong>ConfigMaps</strong>. Select the <code>tssc-developer-hub-app-config</code> ConfigMap to open it for editing. Click the <strong>YAML</strong> tab and scroll down to the <code>techdocs:</code> section near the bottom and change <code>builder: local</code> to <code>builder: external</code>. Click <strong>Save</strong> to commit the changes. RHDH will start a new Pod with the new configuration in the read-mostly mode described in the introduction to this lab.</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_edit_docs_trigger_rebuild"><a class="anchor" href="#_edit_docs_trigger_rebuild"></a>Edit docs, trigger rebuild</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Return to {gitlab_url}/user1/uq/[your <code>uq</code> component&#8217;s source repo^] - this is the fastest route to commit a new change to its documentation and trigger the GitLab CI you&#8217;ve set up.</p>
+</li>
+<li>
+<p>Click the <strong>docs</strong> directory in the file listing, then click <strong>index.md</strong> to open it for editing. You&#8217;ve edited this file twice already, but previously reached it through links in RHDH.</p>
+</li>
+<li>
+<p>Make a recognizable change to the file, then scroll down and <strong>Commit Changes</strong>.</p>
 <div class="paragraph">
-<p>Returning to <a href="https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/" target="_blank" rel="noopener">your <code>uq</code> component&#8217;s source repo</a> is the fastest route to commit a new change to its documentation and trigger the GitLab CI you&#8217;ve set up. Once you land there, click the <strong>docs</strong> directory in the file listing, then click <strong>index.md</strong> to open it for editing. You&#8217;ve edited this file twice already, but previously reached it through links in RHDH. Make a recognizable change to the file, then scroll down and <strong>Commit Changes</strong>.</p>
+<p>Since the pre-installed GitLab you are using does not have any GitLab <em>runners</em> configured, the pipeline will not actually run (it will remain <em>pending</em>), and the docs won&#8217;t be updated. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs.</p>
+</div>
+</li>
+<li>
+<p>Revert back to local generation by changing <code>builder: external</code> back to <code>builder: local</code> and click <strong>Save</strong> to commit the changes. Wait for the new Pod to be ready (and the old Pod to be terminated) before proceeding.</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_read_it_again_for_the_very_first_time"><a class="anchor" href="#_read_it_again_for_the_very_first_time"></a>Read it again, for the very first time</h4>
 <div class="paragraph">
-<p>At last you can return to <a href="https://backstage-developer-hub-tssc-dh.{openshift_cluster_ingress_domain}/">Red Hat Developer Hub</a>. Find your <code>uq</code> component in the catalog and click through to its TechDocs (or just click <strong>Docs</strong> in the left navigation). Refresh the content with the link in the green notification as in each of the previous milestones.</p>
+<p>At last you can return to {rhdh_url}[Red Hat Developer Hub^, window="rhdh"]. Click <strong>Catalog</strong> on the left, find your <code>uq</code> component in the catalog and click through to its TechDocs (or just click <strong>Docs</strong> in the left navigation). Refresh the content with the link in the green notification as in each of the previous milestones. You can also see the updated objects (by timestamp) in the ODF storage bucket (Navigate to <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>Buckets</strong> and select the bucket beginning with <code>techdocs-</code>) and drill down to the HTML files.</p>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cleanup_annihilate"><a class="anchor" href="#_cleanup_annihilate"></a>Cleanup (Annihilate)</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In Red Hat Developer Hub, click <strong>Catalog</strong> in the left navigation.</p>
+</li>
+<li>
+<p>Click <strong>uq</strong> in the <strong>Owned Components</strong> Catalog list to open your Component.</p>
+</li>
+<li>
+<p>Click the "falafel menu" (three stacked dots) near top right to expand the entity actions menu.</p>
+</li>
+<li>
+<p>Click <strong>Unregister entity</strong></p>
+</li>
+<li>
+<p>Click <strong>Unregister Location</strong> in the presented dialog</p>
+</li>
+<li>
+<p>Notice that the <strong>Owned Components</strong> list no longer includes the <em>uq</em> Component.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Unregistering a Component removes it from the Red Hat Developer Hub Catalog, but does not remove or change external resources that may have been created or executed when the Component was created from its Template. Git repos, OpenShift Projects, Deployments, Pods, and other resources associated with the unregistered Component will still exist. In fact, you can re-register a Component by again providing RHDH a reference to its source repo that still contains a <a href="https://gitlab-gitlab.{openshift_cluster_ingress_domain}/user1/uq/-/blob/main/catalog-info.yaml" target="_blank" rel="noopener"><code>catalog-info.yaml</code> definition</a>. Without further arrangement to cleanup such resources, however, a later instantiation attempting to specify an identical Component name beneath the identical org or user could lead to name conflicts or other resource contention. For example, if your <code>user1 TSSC</code> creates another <code>uq</code>.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
