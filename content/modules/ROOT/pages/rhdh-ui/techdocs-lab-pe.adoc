@@ -32,7 +32,7 @@ You met OpenShift Data Foundation in the xref:setup-tpa/setup-openshift.adoc[Set
 
 === Create ObjectBucketClaim
 
-. In the OpenShift Web Console, visit **Storage** > **Object Storage** > **ObjectBucketClaims** to check the OpenShift Data Foundation. You'll see UI tabs for storage _Buckets_, backing stores, and the this step's focus, _Object Bucket Claims_ (OBC). These represent resources that declare segments of storage available to applications on the cluster.
+. In the OpenShift Web Console, visit **Storage** > **Object Storage** > **ObjectBucketClaims** to check the OpenShift Data Foundation. You'll see UI tabs for storage _Buckets_, backing stores, and this step's focus, _Object Bucket Claims_ (OBC). These represent resources that declare segments of storage available to applications on the cluster.
 
 . Click the `(+)` button at the top of the console, and choose **Import YAML**. 
 
@@ -50,10 +50,10 @@ spec:
   storageClassName: openshift-storage.noobaa.io #<2>
 ----
 <1> A prefix to add to the generated bucket name, for uniqueness and later identification/filtering.
-<2> The storage class to use for the bucket. https://www.noobaa.io/NooBaa[NooBaa^] (productized as _Multicloud Object Gateway_ in OpenShift) is a smart S3 gateway that routes object data across multiple storage backends, and has been pre-configured for you, so we use its storage class here.
+<2> The storage class to use for the bucket. https://www.noobaa.io/NooBaa[NooBaa^] (the upstream of _Multicloud Object Gateway_ in OpenShift products) is a smart S3 gateway that routes object data across multiple storage backends.
 
 +
-This will create a new bucket we will use to store rendered TechDocs. It will also create a new Secret and ConfigMap containing configuration details for the bucket with which we will configure {product_rhdh_name} to use.
+Click **Create** to declare a storage bucket to store rendered TechDocs. This will also create a Secret and ConfigMap containing configuration details for the bucket. You'll use those to configure {product_rhdh_name} to use this bucket.
 
 . In the OpenShift Web Console, visit **Workloads** -> **ConfigMaps** and **Workloads** -> **Secrets** in turn to examine the `rhdh-bucket-claim` resources of each type automatically created when you created the ObjectBucketClaim. In the next steps, you will configure {product_rhdh_name} to use these resources, available as environment variables (or mounted on the filesystem) in the {product_rhdh_name} Pod.
 +
@@ -88,15 +88,14 @@ In the following steps, you will configure {product_rhdh_name} to connect to the
           region: noobaa # <3>  
           s3ForcePathStyle: true # <4>
 ----
-<1> The type of publisher to use. In this case, we are using the `awsS3` publisher type to publish to the ODF storage bucket.
+<1> The type of publisher to use. In this case, you are using the `awsS3` publisher type to publish to the ODF storage bucket.
 <2> The `awsS3` publisher type configuration.
-<3> As we are using local storage, no region is needed, so we use a placeholder value.
-<4> The `s3ForcePathStyle` parameter is set to `true` to force the use of path-style addressing, which is required for the ODF storage bucket.
-
+<3> A placeholder value provides a counterfeit region.
+<4> The `s3ForcePathStyle` parameter uses the storage bucket's conventional file path interface rather the content-addressable API.
 +
 [NOTE]
 ====
-As you may remember from the setup-tpa module, the following script when executed in the `tssc-dh` Project namespace will retrieve all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is being constructed from the variables in the YAML above. Remember, the values for these variables come from the `rhdh-bucket-claim` ConfigMap and Secret generated when you create the `rhdh-bucket-claim` ObjectBucketClaim. If you're interested, run the following commands in the Web Terminal (the `>_` icon near the top right of the OpenShift Web Console) to see their values. You will use this later on when configuring GitLab CI.
+As you may remember from the setup-tpa module, the following script when executed in the `tssc-dh` Project namespace retrieves all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is constructed from the variables in the YAML above. Remember, the values for these variables come from the `rhdh-bucket-claim` ConfigMap and Secret generated when you create the `rhdh-bucket-claim` ObjectBucketClaim. If you're interested, run the following commands in the Web Terminal (the `>_` icon near the top right of the OpenShift Web Console) to see their values. You will use this later on when configuring GitLab CI.
 
 [source,bash,role=execute]
 ----
@@ -311,7 +310,7 @@ In the following steps, you will create a GitLab CI pipeline for the `uq` compon
 
 [NOTE]
 ====
-The pre-installed GitLab you are using does not have any GitLab _runners_ configured, so the pipeline created below will not actually run. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs. In a production environment, you would need to https://www.redhat.com/en/blog/your-guide-to-the-gitlab-operator-on-openshift[configure a GitLab Runner^] to run the pipeline.
+The pre-installed GitLab you are using does not have GitLab _runners_ configured, so the pipeline created below will not actually run. It  demonstrates the configuration of a GitLab CI pipeline for TechDocs. In a production environment, you would continue on to https://www.redhat.com/en/blog/your-guide-to-the-gitlab-operator-on-openshift[configure a GitLab Runner^] and the GitLab Operator to run the pipeline.
 ====
 
 . Copy the YAML excerpt above to your clipboard.
@@ -351,7 +350,7 @@ Switch back to the OpenShift Web Console. Ensure you are in the Administrator pe
 
 . Make a recognizable change to the file, then scroll down and **Commit Changes**.
 +
-Since the pre-installed GitLab you are using does not have any GitLab _runners_ configured, the pipeline will not actually run (it will remain _pending_), and the docs won't be updated. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs.
+Since the pre-installed GitLab you are using does not have any GitLab _runners_ configured, the pipeline will not actually run (it will remain _pending_), and the docs won't be updated. It demonstrates the configuration of a GitLab CI pipeline for TechDocs from a developer viewpoint.
 
 . Revert back to local generation by changing `builder: external` back to `builder: local` and click **Save** to commit the changes. Wait for the new Pod to be ready (and the old Pod to be terminated) before proceeding.
 
