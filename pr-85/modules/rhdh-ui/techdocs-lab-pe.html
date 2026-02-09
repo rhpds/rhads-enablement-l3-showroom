@@ -530,7 +530,7 @@
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>In the OpenShift Web Console, visit <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>ObjectBucketClaims</strong> to check the OpenShift Data Foundation. You&#8217;ll see UI tabs for storage <em>Buckets</em>, backing stores, and the this step&#8217;s focus, <em>Object Bucket Claims</em> (OBC). These represent resources that declare segments of storage available to applications on the cluster.</p>
+<p>In the OpenShift Web Console, visit <strong>Storage</strong> &gt; <strong>Object Storage</strong> &gt; <strong>ObjectBucketClaims</strong> to check the OpenShift Data Foundation. You&#8217;ll see UI tabs for storage <em>Buckets</em>, backing stores, and this step&#8217;s focus, <em>Object Bucket Claims</em> (OBC). These represent resources that declare segments of storage available to applications on the cluster.</p>
 </li>
 <li>
 <p>Click the <code>(+)</code> button at the top of the console, and choose <strong>Import YAML</strong>.</p>
@@ -557,12 +557,12 @@ spec:
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The storage class to use for the bucket. <a href="https://www.noobaa.io/NooBaa" target="_blank" rel="noopener">NooBaa</a> (productized as <em>Multicloud Object Gateway</em> in OpenShift) is a smart S3 gateway that routes object data across multiple storage backends, and has been pre-configured for you, so we use its storage class here.</td>
+<td>The storage class to use for the bucket. <a href="https://www.noobaa.io/NooBaa" target="_blank" rel="noopener">NooBaa</a> (the upstream of <em>Multicloud Object Gateway</em> in OpenShift products) is a smart S3 gateway that routes object data across multiple storage backends.</td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>This will create a new bucket we will use to store rendered TechDocs. It will also create a new Secret and ConfigMap containing configuration details for the bucket with which we will configure Red Hat Developer Hub to use.</p>
+<p>Click <strong>Create</strong> to declare a storage bucket to store rendered TechDocs. This will also create a Secret and ConfigMap containing configuration details for the bucket. You&#8217;ll use those to configure Red Hat Developer Hub to use this bucket.</p>
 </div>
 </li>
 <li>
@@ -616,7 +616,7 @@ spec:
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The type of publisher to use. In this case, we are using the <code>awsS3</code> publisher type to publish to the ODF storage bucket.</td>
+<td>The type of publisher to use. In this case, you are using the <code>awsS3</code> publisher type to publish to the ODF storage bucket.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
@@ -624,14 +624,11 @@ spec:
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>As we are using local storage, no region is needed, so we use a placeholder value.</td>
+<td>A placeholder value provides a counterfeit region.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The <code>s3ForcePathStyle</code> parameter is set to <code>true</code> to force the use of path-style addressing, which is required for the ODF storage bucket.</td>
-</tr>
-</table>
-</div>
+<td>The <code>s3ForcePathStyle</code> parameter uses the storage bucket&#8217;s conventional file path interface rather the content-addressable API.
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -640,7 +637,7 @@ spec:
 </td>
 <td class="content">
 <div class="paragraph">
-<p>As you may remember from the setup-tpa module, the following script when executed in the <code>tssc-dh</code> Project namespace will retrieve all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is being constructed from the variables in the YAML above. Remember, the values for these variables come from the <code>rhdh-bucket-claim</code> ConfigMap and Secret generated when you create the <code>rhdh-bucket-claim</code> ObjectBucketClaim. If you&#8217;re interested, run the following commands in the Web Terminal (the <code>&gt;_</code> icon near the top right of the OpenShift Web Console) to see their values. You will use this later on when configuring GitLab CI.</p>
+<p>As you may remember from the setup-tpa module, the following script when executed in the <code>tssc-dh</code> Project namespace retrieves all of the credentials for your ODF storage bucket at once and dressed up with a bit of formatting, so you can inspect what is constructed from the variables in the YAML above. Remember, the values for these variables come from the <code>rhdh-bucket-claim</code> ConfigMap and Secret generated when you create the <code>rhdh-bucket-claim</code> ObjectBucketClaim. If you&#8217;re interested, run the following commands in the Web Terminal (the <code>&gt;_</code> icon near the top right of the OpenShift Web Console) to see their values. You will use this later on when configuring GitLab CI.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -665,6 +662,9 @@ echo ""</code></pre>
 </div>
 </div>
 </td>
+</tr>
+</table>
+</div></td>
 </tr>
 </table>
 </div>
@@ -954,7 +954,7 @@ generate-and-publish-techdocs:
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The pre-installed GitLab you are using does not have any GitLab <em>runners</em> configured, so the pipeline created below will not actually run. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs. In a production environment, you would need to <a href="https://www.redhat.com/en/blog/your-guide-to-the-gitlab-operator-on-openshift" target="_blank" rel="noopener">configure a GitLab Runner</a> to run the pipeline.</p>
+<p>The pre-installed GitLab you are using does not have GitLab <em>runners</em> configured, so the pipeline created below will not actually run. It  demonstrates the configuration of a GitLab CI pipeline for TechDocs. In a production environment, you would continue on to <a href="https://www.redhat.com/en/blog/your-guide-to-the-gitlab-operator-on-openshift" target="_blank" rel="noopener">configure a GitLab Runner</a> and the GitLab Operator to run the pipeline.</p>
 </div>
 </td>
 </tr>
@@ -1028,7 +1028,7 @@ generate-and-publish-techdocs:
 <li>
 <p>Make a recognizable change to the file, then scroll down and <strong>Commit Changes</strong>.</p>
 <div class="paragraph">
-<p>Since the pre-installed GitLab you are using does not have any GitLab <em>runners</em> configured, the pipeline will not actually run (it will remain <em>pending</em>), and the docs won&#8217;t be updated. It is merely to demonstrate the configuration of a GitLab CI pipeline for TechDocs.</p>
+<p>Since the pre-installed GitLab you are using does not have any GitLab <em>runners</em> configured, the pipeline will not actually run (it will remain <em>pending</em>), and the docs won&#8217;t be updated. It demonstrates the configuration of a GitLab CI pipeline for TechDocs from a developer viewpoint.</p>
 </div>
 </li>
 <li>
