@@ -95,7 +95,7 @@ As a convenience to developers, the Dev Mode Extention (disabled by default) dis
 
 . Disable/Enable Dev Mode by changing `enabled: true` or `enabled: false`
 +
-.default-site.yml
+.site.yml
 [source,yaml]
 ----
 extensions:

@@ -33,7 +33,7 @@ jobs:
     - name: Build documentation
       run: |
         echo "Building Antora documentation..."
-        antora --stacktrace default-site.yml
+        antora --stacktrace site.yml
     
     - name: Deploy PR Preview to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3

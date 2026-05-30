@@ -1,0 +1,40 @@
+---
+# Showroom UI Configuration
+# Documentation: https://github.com/rhpds/showroom
+
+type: showroom
+
+# Set the left column width (default: 50%)
+default_width: 50
+
+# Persist the URL state so browser refresh doesn't reset the UI
+persist_url_state: true
+
+# Enable split view mode (lab guide on left, consoles on right)
+view_switcher:
+  enabled: true
+  default_mode: split
+
+# Terminal and console tabs configuration
+tabs:
+  - name: Terminal
+    path: /wetty
+    port: 443
+
+  - name: Console
+    url: 'https://console-openshift-console.${DOMAIN}'
+
+  - name: Developer Hub
+    url: 'https://backstage-developer-hub-tssc-dh.${DOMAIN}'
+
+  - name: GitLab
+    url: 'https://gitlab-gitlab.${DOMAIN}'
+
+  - name: GitOps
+    url: 'https://tssc-gitops-server-tssc-gitops.${DOMAIN}'
+
+  - name: Quay
+    url: 'https://quay-${GUID}.${DOMAIN}'
+
+  - name: TPA
+    url: 'https://server-tssc-tpa.${DOMAIN}'
