@@ -73,7 +73,7 @@ jobs:
           - **Build Time:** ${{ steps.date.outputs.date }}
           
           **🌐 Live Preview:**
-          [**🔗 View Documentation Preview**](https://redhat-ads-tech.github.io/rhads-enablement-l3/pr-${{ github.event.number }}/)
+          [**🔗 View Documentation Preview**](https://rhpds.github.io/rhads-enablement-l3-showroom/pr-${{ github.event.number }}/)
           
           **📥 Alternative - Download Artifact:**
           You can also download the generated documentation from the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
