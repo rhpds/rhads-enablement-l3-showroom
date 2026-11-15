@@ -7,10 +7,10 @@ Terminal deployment output:
 Setting up "Podman Terminal" with OAuth Configuration 
 ========================================================
 Extracting OAuth configuration from OpenShift cluster...
-OIDC Client ID: ocp4_workload_advanced_developer_suite_openshift_keycloak_client_id
+OIDC Client ID: idp-4-ocp
 Client Secret Name: openid-client-secret-bb6zw
 OIDC Client Secret: [REDACTED]
-OIDC Issuer URL: https://sso.apps.cluster-mdt2d.dynamic.redhatworkshops.io/realms/trusted-artifact-signer
+OIDC Issuer URL: https://sso.apps.cluster-mdt2d.dynamic.redhatworkshops.io/realms/tssc-iam
 Cluster Ingress Domain: apps.cluster-mdt2d.dynamic.redhatworkshops.io
 Generating cookie secret...
 Cookie Secret: [REDACTED]
@@ -19,8 +19,8 @@ Creating podman-terminal.yaml from template-podman-terminal.yaml...
 Successfully created podman-terminal.yaml
 
 Summary:
-  - OIDC Client ID: ocp4_workload_advanced_developer_suite_openshift_keycloak_client_id
-  - OIDC Issuer URL: https://sso.apps.cluster-mdt2d.dynamic.redhatworkshops.io/realms/trusted-artifact-signer
+  - OIDC Client ID: idp-4-ocp
+  - OIDC Issuer URL: https://sso.apps.cluster-mdt2d.dynamic.redhatworkshops.io/realms/tssc-iam
   - Cluster Ingress Domain: apps.cluster-mdt2d.dynamic.redhatworkshops.io
   - Generated cookie secret
 
